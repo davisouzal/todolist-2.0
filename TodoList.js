@@ -33,9 +33,7 @@ class TodoList extends Component {
     var itemDescription = this.state.itemDescription;
     var priority = this.state.priority;
     if(priority!==-1){
-      var min = Math.ceil(0);
-      var max = Math.floor(10000000);
-      var id = Math.floor(Math.random() * (max - min + 1)) + min;
+      var id = Date.now();
 
       axios.post('https://todolist-295919.appspot.com/addTodoItem?item='+itemDescription+'&priority='+priority+'&id='+id)
       .then(res => {
