@@ -32,7 +32,7 @@ class TodoList extends Component {
   addTodoItem = () => {
     var itemDescription = this.state.itemDescription;
     var priority = this.state.priority;
-    if(priority!==-1){
+    if(priority!==-1 && itemDescription!==''){
       var id = Date.now();
 
       axios.post('https://todolist-295919.appspot.com/addTodoItem?item='+itemDescription+'&priority='+priority+'&id='+id)
@@ -46,7 +46,11 @@ class TodoList extends Component {
       });
       this.setState({itemDescription: ''})
   }else{
-    Alert.alert("Selecione uma prioridade!")
+    Alert.alert("Falta de dados detectada", "Por favor, preencha todos os campos corretamente",[
+      {
+        text: "Ok! Irei tentar"
+      }
+    ])
   }
 }
 
