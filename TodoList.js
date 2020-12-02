@@ -17,11 +17,29 @@ class TodoList extends Component {
 
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    await db.collection('atividades').get()
+      .then((snapshot) => {
+        snapshot.forEach((doc) => {
+          const res = {
+            id: doc.id,
+            item: doc.data().item,
+            priority: doc.data().priority
 
+          }
+          this.setState({
+            items: res,
+          });
+
+        });
+
+      })
+      .catch((err) => {
+        console.log('Error getting documents', JSON.stringify(err));
+      });
   }
 
-  addTodoItem = () => {
+  addTodoItem = async () => {
     var itemDescription = this.state.itemDescription;
     var priority = this.state.priority;
     if (priority !== -1 && itemDescription !== '') {
@@ -35,7 +53,7 @@ class TodoList extends Component {
       } catch (error) {
         console.log("Error adding document: ", error)
       }
-    }else {
+    } else {
       Alert.alert("Falta de dados encontrada", "Preencha os campos corretamente", {
         text: "Ok! Irei fazê-lo!"
       })
