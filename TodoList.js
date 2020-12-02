@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Alert} from 'react-native';
-import axios from "axios";
 import { FontAwesome } from '@expo/vector-icons'; 
+import { db } from './config'
 
 // STATEFUL
 class TodoList extends Component {
@@ -35,11 +35,11 @@ class TodoList extends Component {
     if(priority!==-1 && itemDescription!==''){
       var id = Date.now();
 
-      axios.post('https://todolist-295919.appspot.com/addTodoItem?item='+itemDescription+'&priority='+priority+'&id='+id)
+      /*axios.post('https://todolist-295919.appspot.com/addTodoItem?item='+itemDescription+'&priority='+priority+'&id='+id)
       .then(res => {
         this.setState({
           items: res.data.items,
-        });
+        });s
       })
       .catch(e => {
         console.log(JSON.stringify(e));
@@ -51,7 +51,17 @@ class TodoList extends Component {
         text: "Ok! Irei tentar"
       }
     ])
-  }
+  }*/
+  const refTodo = db.collection("atividades");
+    try {
+      await refTodo.add({
+        item: this.state.input,
+        priority: this.state.select
+      });
+
+    } catch (error) {
+      console.log("Error adding document: ", error)
+    }
 }
 
   changePriority = (priority) => {
