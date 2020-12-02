@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Alert, ListViewBase } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { db } from './config'
 
@@ -8,9 +8,12 @@ class TodoList extends Component {
 
   constructor(props) {
     super(props);
+    console.ignoredYellowBox = [
+      'Setting a timer'
+      ];
 
     this.state = ({
-      items: [],
+      items: [{id: 2019, item: "Escovar os dentes", priority: 2}],
       itemDescription: '',
       priority: -1,
     });
@@ -22,18 +25,15 @@ class TodoList extends Component {
       .then((snapshot) => {
         snapshot.forEach((doc) => {
           const res = {
-            id: doc.id,
-            item: doc.data().item,
-            priority: doc.data().priority
-
+            id: doc.id(),
+            priority: doc.data().priority,
+            item: doc.data().item
           }
           this.setState({
-            items: res,
+            items: res
           });
-
         });
-
-      })
+    })
       .catch((err) => {
         console.log('Error getting documents', JSON.stringify(err));
       });
@@ -74,6 +74,9 @@ class TodoList extends Component {
     } else {
       return ('none');
     }
+  }
+  lista = () =>{
+    console.log(this.state.items)
   }
   render() {
     return (
@@ -128,6 +131,7 @@ class TodoList extends Component {
               })
             }
           </View>
+          <TouchableOpacity onPress={this.lista} style={styles.button}><Text style={styles.priorityForm, {padding: 5}}>Clica</Text></TouchableOpacity>
           <View>
 
           </View>
