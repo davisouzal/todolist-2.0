@@ -1,12 +1,12 @@
-import React, {Component} from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Alert} from 'react-native';
-import { FontAwesome } from '@expo/vector-icons'; 
+import React, { Component } from 'react';
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import { db } from './config'
 
 // STATEFUL
 class TodoList extends Component {
 
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.state = ({
@@ -17,127 +17,105 @@ class TodoList extends Component {
 
   }
 
-  componentDidMount () {
-      axios.get('https://todolist-295919.appspot.com/listItems')
-      .then(res => {
-        this.setState({
-          items: res.data.items,
-        })
-      })  
-      .catch(e => {
-        console.log(JSON.stringify(e));
-      })
+  componentDidMount() {
+
   }
 
   addTodoItem = () => {
     var itemDescription = this.state.itemDescription;
     var priority = this.state.priority;
-    if(priority!==-1 && itemDescription!==''){
-      var id = Date.now();
+    if (priority !== -1 && itemDescription !== '') {
+      const refTodo = db.collection("atividades");
+      try {
+        await refTodo.add({
+          item: itemDescription,
+          priority: priority,
+        });
 
-      /*axios.post('https://todolist-295919.appspot.com/addTodoItem?item='+itemDescription+'&priority='+priority+'&id='+id)
-      .then(res => {
-        this.setState({
-          items: res.data.items,
-        });s
-      })
-      .catch(e => {
-        console.log(JSON.stringify(e));
-      });
-      this.setState({itemDescription: ''})
-  }else{
-    Alert.alert("Falta de dados detectada", "Por favor, preencha todos os campos corretamente",[
-      {
-        text: "Ok! Irei tentar"
+      } catch (error) {
+        console.log("Error adding document: ", error)
       }
-    ])
-  }*/
-  const refTodo = db.collection("atividades");
-    try {
-      await refTodo.add({
-        item: this.state.input,
-        priority: this.state.select
-      });
-
-    } catch (error) {
-      console.log("Error adding document: ", error)
+    }else {
+      Alert.alert("Falta de dados encontrada", "Preencha os campos corretamente", {
+        text: "Ok! Irei fazê-lo!"
+      })
     }
-}
+  }
 
   changePriority = (priority) => {
-    this.setState({priority});
+    this.setState({ priority });
   }
 
   colorPriority(priority) {
-    if (priority==='2' || priority===2){
+    if (priority === '2' || priority === 2) {
       return ('red')
-    }else if(priority==='1' || priority===1){
+    } else if (priority === '1' || priority === 1) {
       return ('yellow')
-    }else if(priority==='0' || priority===0){
+    } else if (priority === '0' || priority === 0) {
       return ('green')
-    }else{
+    } else {
       return ('none');
     }
   }
   render() {
-      return (
-        <View style={styles.bigger}>
-          <View style={styles.bar}>
-                <Text style={styles.textBar}>TODO<Text style={{fontWeight: 'bold'}}>LIST</Text></Text>
+    return (
+      <View style={styles.bigger}>
+        <View style={styles.bar}>
+          <Text style={styles.textBar}>TODO<Text style={{ fontWeight: 'bold' }}>LIST</Text></Text>
+        </View>
+        <View style={styles.container}>
+          <View style={{ marginBottom: 5 }}>
+            <View style={styles.form}>
+              <TextInput
+                style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: "#DDDDDD", flex: 1, padding: 5 }} placeholder={'Descrição'}
+                value={this.state.itemDescription} onChangeText={(text) => this.setState({ itemDescription: text })}
+              ></TextInput>
+
+              <TouchableOpacity onPress={() => this.addTodoItem()}>
+                <Text style={styles.btnAdd}>+</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.priorityForm}>
+              <TouchableOpacity style={[
+                styles.button,
+                this.state.priority == 0 ? styles.hover : styles.grayColor]}
+                onPress={() => this.changePriority(0)}>
+                <Text>Baixa</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[
+                styles.button,
+                this.state.priority == 1 ? styles.hover : styles.grayColor]}
+                onPress={() => this.changePriority(1)}>
+                <Text>Média</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[
+                styles.button,
+                this.state.priority == 2 ? styles.hover : styles.grayColor]}
+                onPress={() => this.changePriority(2)}>
+                <Text>Alta</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <View style={styles.container}>
-            <View style={{marginBottom: 5   }}>
-              <View style={styles.form}>
-                <TextInput 
-                    style={{backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: "#DDDDDD", flex: 1, padding: 5}} placeholder={'Descrição'}
-                    value={this.state.itemDescription} onChangeText={(text) => this.setState({itemDescription: text})}
-                  ></TextInput>
+          <View style={styles.itemList}>
+            {
+              this.state.items.map(elem => {
+                return (
+                  <View style={styles.item} key={elem.id}>
+                    <Text style={styles.itemText}>{elem.item}</Text>
+                    <FontAwesome name="square" size={30} color={this.colorPriority(elem.priority)} />
+                  </View>
+                )
+              })
+            }
+          </View>
+          <View>
 
-                  <TouchableOpacity onPress={()=>this.addTodoItem()}>
-                    <Text style={styles.btnAdd}>+</Text>
-                  </TouchableOpacity>
-              </View>
-              <View style={styles.priorityForm}>
-                <TouchableOpacity style={[
-                    styles.button, 
-                    this.state.priority == 0 ? styles.hover : styles.grayColor]} 
-                    onPress={() => this.changePriority(0)}>
-                  <Text>Baixa</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity style={[
-                    styles.button, 
-                    this.state.priority == 1 ? styles.hover : styles.grayColor]} 
-                    onPress={() => this.changePriority(1)}>
-                  <Text>Média</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[
-                    styles.button, 
-                    this.state.priority == 2 ? styles.hover : styles.grayColor]} 
-                    onPress={() => this.changePriority(2)}>
-                  <Text>Alta</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <View style={styles.itemList}>
-              { 
-                this.state.items.map(elem => {
-                  return (
-                    <View style={styles.item} key={elem.id}>
-                      <Text style={styles.itemText}>{elem.item}</Text>
-                      <FontAwesome name="square" size={30} color={this.colorPriority(elem.priority)} />
-                    </View> 
-                  )
-                })
-              }
-            </View>
-            <View>
-              
-            </View>
           </View>
         </View>
-      );
+      </View>
+    );
   }
 
 }
@@ -164,15 +142,15 @@ const styles = StyleSheet.create({
   grayColor: {
     backgroundColor: '#DDDDDD'
   },
-  bigger :{
+  bigger: {
     flex: 1,
   },
-  textBar:{
+  textBar: {
     color: "white",
     fontSize: 20,
     padding: 15,
   },
-  bar:{
+  bar: {
     backgroundColor: "green",
     marginTop: 23,
     width: '100%',
@@ -180,7 +158,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
   },
-  btnAdd:{
+  btnAdd: {
     color: "#3371FF",
     fontSize: 15,
     borderWidth: 1,
@@ -190,21 +168,21 @@ const styles = StyleSheet.create({
     width: 25,
     marginLeft: 5,
   },
-  form:{
+  form: {
     flexDirection: "row",
     alignContent: "center",
     alignItems: "center",
     justifyContent: "center",
   },
-  priorityForm:{
+  priorityForm: {
     marginTop: 15,
     flexDirection: "row",
     backgroundColor: "#DDDDDD",
     borderRadius: 5,
   },
-  itemList:{
+  itemList: {
   },
-  item:{
+  item: {
     paddingTop: 20,
     justifyContent: "center",
     textAlignVertical: "center",
@@ -213,7 +191,7 @@ const styles = StyleSheet.create({
     borderColor: "white",
     borderBottomColor: "#DDDDDD"
   },
-  itemText:{
+  itemText: {
     paddingRight: 20,
     flex: 1,
     justifyContent: "center",
