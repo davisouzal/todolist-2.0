@@ -9,23 +9,31 @@ class TodoList extends Component {
   constructor(props) {
     super(props);
     console.ignoredYellowBox = [
-      'Setting a timer'
+      'Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.r'
       ];
 
     this.state = ({
-      items: [{id: 2019, item: "Escovar os dentes", priority: 2}],
+      items: [],
       itemDescription: '',
       priority: -1,
     });
 
   }
 
-  async componentDidMount() {
+  componentDidMount() {
+    var newThis = this;
+    newThis.listToDoItem();
+  }
+
+  listToDoItem = async () => {
+    this.setState({
+      items: []
+    })
     await db.collection('atividades').get()
       .then((snapshot) => {
         snapshot.forEach((doc) => {
           const res = {
-            id: doc.id(),
+            id: doc.id,
             priority: doc.data().priority,
             item: doc.data().item
           }
@@ -42,13 +50,20 @@ class TodoList extends Component {
   addTodoItem = async () => {
     var itemDescription = this.state.itemDescription;
     var priority = this.state.priority;
+    const id = new Date();
     if (priority !== -1 && itemDescription !== '') {
       const refTodo = db.collection("atividades");
       try {
-        await refTodo.add({
+        await refTodo.doc(id.toString()).set({
           item: itemDescription,
           priority: priority,
         });
+
+      this.setState({
+        itemDescription: ''
+      })
+
+      this.listToDoItem();
 
       } catch (error) {
         console.log("Error adding document: ", error)
@@ -74,9 +89,6 @@ class TodoList extends Component {
     } else {
       return ('none');
     }
-  }
-  lista = () =>{
-    console.log(this.state.items)
   }
   render() {
     return (
@@ -131,7 +143,6 @@ class TodoList extends Component {
               })
             }
           </View>
-          <TouchableOpacity onPress={this.lista} style={styles.button}><Text style={styles.priorityForm, {padding: 5}}>Clica</Text></TouchableOpacity>
           <View>
 
           </View>
