@@ -30,7 +30,7 @@ class TodoList extends Component {
             item: doc.data().item
           }
           this.setState({
-            items: res
+            items: [res, ...this.state.items]
           });
         });
     })
