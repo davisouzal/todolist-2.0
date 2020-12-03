@@ -10,7 +10,7 @@ class TodoList extends Component {
     super(props);
     console.ignoredYellowBox = [
       'Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.r'
-      ];
+    ];
 
     this.state = ({
       items: [],
@@ -41,7 +41,7 @@ class TodoList extends Component {
             items: [res, ...this.state.items]
           });
         });
-    })
+      })
       .catch((err) => {
         console.log('Error getting documents', JSON.stringify(err));
       });
@@ -59,11 +59,11 @@ class TodoList extends Component {
           priority: priority,
         });
 
-      this.setState({
-        itemDescription: ''
-      })
+        this.setState({
+          itemDescription: ''
+        })
 
-      this.listToDoItem();
+        this.listToDoItem();
 
       } catch (error) {
         console.log("Error adding document: ", error)
@@ -73,6 +73,22 @@ class TodoList extends Component {
         text: "Ok! Irei fazê-lo!"
       })
     }
+  }
+  deleteItem = async (id) => {
+    console.log("Resposta do Delete: " + id)
+    Alert.alert("Detecção de hostilidade contra o item", "Deseja apagar mesmo o item?", [
+      {
+        text: "Sim, eu me cansei desse item",
+        onPress: async() => 
+        {await db.collection('atividades').doc(id).delete()
+        this.listToDoItem()},
+      },
+      {
+        text: "Não, foi um erro! Me desculpe!",
+        style: "cancel"
+      }
+    ])
+
   }
 
   changePriority = (priority) => {
@@ -136,7 +152,9 @@ class TodoList extends Component {
               this.state.items.map(elem => {
                 return (
                   <View style={styles.item} key={elem.id}>
-                    <Text style={styles.itemText}>{elem.item}</Text>
+                    <TouchableOpacity onPress={() => this.deleteItem(elem.id)}>
+                      <Text style={styles.itemText}>{elem.item}</Text>
+                    </TouchableOpacity>
                     <FontAwesome name="square" size={30} color={this.colorPriority(elem.priority)} />
                   </View>
                 )
@@ -217,7 +235,7 @@ const styles = StyleSheet.create({
   },
   item: {
     paddingTop: 20,
-    justifyContent: "center",
+    justifyContent: "space-between",
     textAlignVertical: "center",
     flexDirection: "row",
     borderWidth: 0.5,
@@ -227,7 +245,7 @@ const styles = StyleSheet.create({
   itemText: {
     paddingRight: 20,
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignSelf: "center",
     textAlignVertical: "center",
   }
