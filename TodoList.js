@@ -1,21 +1,21 @@
 import React, { Component } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Alert, ListViewBase } from 'react-native';
+import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { db } from './config'
 
 // STATEFUL
 class TodoList extends Component {
-
   constructor(props) {
     super(props);
     console.ignoredYellowBox = [
       'Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.r'
     ];
-
     this.state = ({
       items: [],
       itemDescription: '',
       priority: -1,
+      modalVisible: false,
+      id: '',
     });
 
   }
@@ -75,13 +75,14 @@ class TodoList extends Component {
     }
   }
   deleteItem = async (id) => {
-    console.log("Resposta do Delete: " + id)
     Alert.alert("Detecção de hostilidade contra o item", "Deseja apagar mesmo o item?", [
       {
         text: "Sim, eu me cansei desse item",
-        onPress: async() => 
-        {await db.collection('atividades').doc(id).delete()
-        this.listToDoItem()},
+        onPress: async () => {
+          await db.collection('atividades').doc(id).delete()
+          this.listToDoItem()
+          this.setModalVisible(false)
+        },
       },
       {
         text: "Não, foi um erro! Me desculpe!",
@@ -89,6 +90,18 @@ class TodoList extends Component {
       }
     ])
 
+  }
+  updateItem = async () =>{
+    await db.collection('atividades').doc(this.state.id).set({
+      item: this.state.itemDescription,
+      priority: this.state.priority
+    }).then( function(){
+      console.log("Enviou numa boa o update");
+    }).catch(function (error){
+      console.error("Deu erro no update: ", error)
+    })
+    this.listToDoItem()
+    this.setModalVisible(false)
   }
 
   changePriority = (priority) => {
@@ -106,6 +119,25 @@ class TodoList extends Component {
       return ('none');
     }
   }
+
+  setModalVisible(visibility, id, item, priority) {
+    if (visibility) {
+      this.setState({
+        modalVisible: true,
+        itemDescription: item,
+        id: id,
+        priority: priority
+      })
+    } else {
+      this.setState({
+        modalVisible: false,
+        itemDescription: '',
+        id: '',
+        priority: -1
+      })
+    }
+  }
+
   render() {
     return (
       <View style={styles.bigger}>
@@ -152,7 +184,7 @@ class TodoList extends Component {
               this.state.items.map(elem => {
                 return (
                   <View style={styles.item} key={elem.id}>
-                    <TouchableOpacity onPress={() => this.deleteItem(elem.id)}>
+                    <TouchableOpacity onPress={() => { this.setModalVisible(true, elem.id, elem.item, elem.priority) }}>
                       <Text style={styles.itemText}>{elem.item}</Text>
                     </TouchableOpacity>
                     <FontAwesome name="square" size={30} color={this.colorPriority(elem.priority)} />
@@ -165,6 +197,57 @@ class TodoList extends Component {
 
           </View>
         </View>
+        <Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.modalVisible}
+          onRequestClose={() => {
+            this.setModalVisible(false)
+          }}>
+          <View style={styles.containerModal}>
+            <Text style={{marginBottom: 10}}>O que desejas fazer?</Text>
+            <View style={{ flexDirection: "row" }}>
+              <TextInput 
+              defaultValue={this.state.itemDescription} 
+              style={{ flex: 1, textAlign: "center", borderWidth: 1, borderColor: "#DDDDDD", padding: 5, minWidth: 200, margin: 5 }} 
+              onChangeText={(text) => this.setState({ itemDescription: text })}
+              />
+            </View>
+            <View style={{flexDirection: "row", backgroundColor: "#DDDDDD", borderRadius: 5, marginBottom: 10}}>
+              <TouchableOpacity style={[
+                styles.button,
+                this.state.priority == 0 ? styles.hover : styles.grayColor]}
+                onPress={() => this.changePriority(0)}>
+                <Text>Baixa</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[
+                styles.button,
+                this.state.priority == 1 ? styles.hover : styles.grayColor]}
+                onPress={() => this.changePriority(1)}>
+                <Text>Média</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[
+                styles.button,
+                this.state.priority == 2 ? styles.hover : styles.grayColor]}
+                onPress={() => this.changePriority(2)}>
+                <Text>Alta</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity onPress={() => { this.updateItem() }} style={styles.btnModal}>
+                <Text style={{ color: 'gray' }}>Editar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => { this.deleteItem(this.state.id) }} style={styles.btnModal}>
+                <Text style={{ color: 'red' }}>Deletar</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={() => { this.setModalVisible(false) }} style={{ marginTop: 50, borderColor: "orange", borderWidth: 1, padding: 5, borderRadius: 5}}>
+              <Text style={{ color: 'orange' }}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -248,6 +331,22 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignSelf: "center",
     textAlignVertical: "center",
+  },
+  containerModal: {
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    paddingHorizontal: 10,
+    marginTop: 10,
+  },
+  btnModal: {
+    padding: 5,
+    margin: 5,
+    borderWidth: 1,
+    borderRadius: 10,
+    flex: 1,
+    alignItems: "center",
+    borderColor: "#DDDDDD"
   }
 });
 
