@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal, LogBox } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { db } from './config'
 
@@ -7,7 +7,7 @@ import { db } from './config'
 class TodoList extends Component {
   constructor(props) {
     super(props);
-    console.ignoredYellowBox = [
+    LogBox.ignoreLogs = [
       'Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.r'
     ];
     this.state = ({
